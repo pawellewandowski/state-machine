@@ -36,21 +36,21 @@ class StateMachine implements StateMachineInterface
     protected $callbackFactory;
 
     /**
-     * @param object                   $object          Underlying object for the state machine
-     * @param array                    $config          Config array of the graph
-     * @param EventDispatcherInterface $dispatcher      EventDispatcher or null not to dispatch events
+     * @param object $object Underlying object for the state machine
+     * @param array $config Config array of the graph
+     * @param EventDispatcherInterface $dispatcher EventDispatcher or null not to dispatch events
      * @param CallbackFactoryInterface $callbackFactory CallbackFactory or null to use the default one
-     *
      * @throws SMException If object doesn't have configured property path for state
      */
     public function __construct(
         $object,
         array $config,
-        EventDispatcherInterface $dispatcher      = null,
+        EventDispatcherInterface $dispatcher = null,
         CallbackFactoryInterface $callbackFactory = null
-    ) {
-        $this->object          = $object;
-        $this->dispatcher      = $dispatcher;
+    )
+    {
+        $this->object = $object;
+        $this->dispatcher = $dispatcher;
         $this->callbackFactory = $callbackFactory ?: new CallbackFactory(Callback::class);
 
         if (!isset($config['property_path'])) {
@@ -147,7 +147,12 @@ class StateMachine implements StateMachineInterface
     public function getState(): string
     {
         $accessor = new PropertyAccessor();
-        return $accessor->getValue($this->object, $this->config['property_path']);
+
+        $value = $accessor->getValue($this->object, $this->config['property_path']);
+        if (class_exists(\UnitEnum::class) && $value instanceof \UnitEnum) {
+            return $value->value;
+        }
+        return $value;
     }
 
     /**
@@ -181,7 +186,6 @@ class StateMachine implements StateMachineInterface
      * Set a new state to the underlying object
      *
      * @param string $state
-     *
      * @throws SMException
      */
     protected function setState($state): void
@@ -196,6 +200,11 @@ class StateMachine implements StateMachineInterface
         }
 
         $accessor = new PropertyAccessor();
+        $value = $accessor->getValue($this->object, $this->config['property_path']);
+        if (class_exists(\UnitEnum::class) && $value instanceof \UnitEnum) {
+            $class = get_class($value);
+            $state = $class::from($state);
+        }
         $accessor->setValue($this->object, $this->config['property_path'], $state);
     }
 
