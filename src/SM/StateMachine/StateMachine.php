@@ -149,7 +149,7 @@ class StateMachine implements StateMachineInterface
         $accessor = new PropertyAccessor();
 
         $value = $accessor->getValue($this->object, $this->config['property_path']);
-        if (class_exists(\UnitEnum::class) && $value instanceof \UnitEnum) {
+        if ($value instanceof \UnitEnum) {
             return $value->value;
         }
         return $value;
@@ -201,7 +201,7 @@ class StateMachine implements StateMachineInterface
 
         $accessor = new PropertyAccessor();
         $value = $accessor->getValue($this->object, $this->config['property_path']);
-        if (class_exists(\UnitEnum::class) && $value instanceof \UnitEnum) {
+        if ($value instanceof \UnitEnum) {
             $class = get_class($value);
             $state = $class::from($state);
         }
